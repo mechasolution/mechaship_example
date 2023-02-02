@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from rclpy.parameter import Parameter
 from sensor_msgs.msg import LaserScan
 import math
 import numpy as np
@@ -10,7 +11,68 @@ from mechaship_interfaces.msg import Classification, ClassificationArray
 
 class MechashipClassify(Node):
     def __init__(self):
-        super().__init__("mechaship_classify_node")
+        super().__init__(
+            "mechaship_classify_node",
+            allow_undeclared_parameters=True,
+            automatically_declare_parameters_from_overrides=True,
+        )
+        self.classify_method = (
+            self.get_parameter_or(
+                "classify_method",
+                Parameter("classify_method", Parameter.Type.STRING, "lsm"),
+            )
+            .get_parameter_value()
+            .string_value
+        )
+        self.differential_threshold = (
+            self.get_parameter_or(
+                "differential_threshold",
+                Parameter("differential_threshold", Parameter.Type.DOUBLE, 5.0),
+            )
+            .get_parameter_value()
+            .double_value
+        )
+        self.max_rho_index_range = (
+            self.get_parameter_or(
+                "max_rho_index_range",
+                Parameter("max_rho_index_range", Parameter.Type.DOUBLE, 0.0),
+            )
+            .get_parameter_value()
+            .double_value
+        )
+        self.classify_min_length = (
+            self.get_parameter_or(
+                "classify_min_length",
+                Parameter("classify_min_length", Parameter.Type.INTEGER, 10),
+            )
+            .get_parameter_value()
+            .integer_value
+        )
+        self.classify_max_length = (
+            self.get_parameter_or(
+                "classify_max_length",
+                Parameter("classify_max_length", Parameter.Type.INTEGER, 100),
+            )
+            .get_parameter_value()
+            .integer_value
+        )
+        self.classify_index_range = (
+            self.get_parameter_or(
+                "classify_index_range",
+                Parameter("classify_index_range", Parameter.Type.DOUBLE, 0.3),
+            )
+            .get_parameter_value()
+            .double_value
+        )
+
+        self.get_logger().info("classify_method: %s" % (self.classify_method))
+        self.get_logger().info(
+            "differential_threshold: %s" % (self.differential_threshold)
+        )
+        self.get_logger().info("max_rho_index_range: %s" % (self.max_rho_index_range))
+        self.get_logger().info("classify_min_length: %s" % (self.classify_min_length))
+        self.get_logger().info("classify_max_length: %s" % (self.classify_max_length))
+        self.get_logger().info("classify_index_range: %s" % (self.classify_index_range))
 
         qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
@@ -47,14 +109,29 @@ class MechashipClassify(Node):
             angle += data.angle_increment
 
         # 극좌표계 적분해서 기울기로 그룹핑
-        polar_coordinates_group = self.grouping_with_differential(rhos, thetas, 5)
+        polar_coordinates_group = self.grouping_with_differential(
+            rhos, thetas, self.differential_threshold
+        )
 
-        # rho로 분리하는 방법
-        # polar_coordinates_group = self.regrouping_with_max_rho(polar_coordinates_group, 0.1)
-        # buoy, wall = self.classify_with_rho(polar_coordinates_group, 10, 0.3)
-
-        # 최소차승법으로 분리하는 방법
-        buoy, wall = self.classify_with_LSM(polar_coordinates_group, 10, 100)
+        if self.classify_method == "rho":
+            # rho로 분리하는 방법
+            polar_coordinates_group = self.regrouping_with_max_rho(
+                polar_coordinates_group, self.max_rho_index_range
+            )
+            buoy, wall = self.classify_with_rho(
+                polar_coordinates_group,
+                self.classify_min_length,
+                self.classify_index_range,
+            )
+        elif self.classify_method == "lsm":
+            # 최소차승법으로 분리하는 방법
+            buoy, wall = self.classify_with_LSM(
+                polar_coordinates_group,
+                self.classify_min_length,
+                self.classify_max_length,
+            )
+        else:
+            return
 
         self.buoy_publisher.publish(buoy)
         self.wall_publisher.publish(wall)
