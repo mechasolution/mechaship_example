@@ -1,0 +1,10 @@
+/**:
+  ros__parameters:
+    ##### 경로 관련 매개변수 #####
+    yolov5_path: "/home/jetson/yolov5"  # yolov5 설치 경로
+    model_path: "/home/jetson/best.pt"  # yolov5 모델 파일 경로
+    ##### 모델 관련 매개변수 #####
+    model_conf: 0.7 # NMS 최소 정확도
+    model_iou: 0.5  # NMS 최소 IoU
+    model_max: 100  # 이미지 당 최대 detection 개수
+    batch_size: 300 # 모델 batch size

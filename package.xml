@@ -3,9 +3,12 @@
 <package format="3">
   <name>mechaship_example</name>
   <version>0.0.0</version>
-  <description>ROS2 Example Node for Mechasolution Autoship 2023 Project</description>
+  <description>ROS2 Example for Mechasolution Autoship 2023 Project</description>
   <maintainer email="sydney@mechasolution.com">Sydney Kim</maintainer>
   <license>Apache 2.0</license>
+
+  <build_depend>mechaship_interfaces</build_depend>
+  <exec_depend>mechaship_interfaces</exec_depend>
 
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>

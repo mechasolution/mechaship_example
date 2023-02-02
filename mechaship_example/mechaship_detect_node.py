@@ -1,11 +1,12 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from rclpy.parameter import Parameter
 from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge
 import torch
-from std_msgs.msg import Float32MultiArray
+from mechaship_interfaces.msg import Detection, DetectionArray
 
 
 class CudaError(Exception):
@@ -75,12 +76,6 @@ class MechashipDetect(Node):
         self.get_logger().info("model_max: %s" % (_model_max))
         self.get_logger().info("batch_size: %s" % (self.batch_size))
 
-        self.subscription = self.create_subscription(
-            Image, "Image", self.listener_callback, 0
-        )
-        self.subscription  # prevent unused variable warning
-        self.br = CvBridge()
-
         if torch.cuda.is_available():
             self.model = torch.hub.load(
                 _yolov5_path, "custom", path=_model_path, source="local"
@@ -91,6 +86,22 @@ class MechashipDetect(Node):
         else:
             raise CudaError()
 
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+            history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+            depth=1,
+        )
+
+        self.image_subscription = self.create_subscription(
+            Image, "/Image", self.listener_callback, qos_profile
+        )
+        self.image_subscription  # prevent unused variable warning
+        self.br = CvBridge()
+
+        self.detection_publisher = self.create_publisher(
+            DetectionArray, "DetectionArray", qos_profile
+        )
+
     def listener_callback(self, data):
         origin_image = self.br.imgmsg_to_cv2(data, "bgr8")
         if len(origin_image):
@@ -98,9 +109,28 @@ class MechashipDetect(Node):
             rgb_img = cv2.cvtColor(origin_image, cv2.COLOR_BGR2RGB)
 
             results = self.model(rgb_img, size=self.batch_size)
-            msg = Float32MultiArray()
-            # xmin / ymin / xmax / ymax / confidence / class / name
-            msg.data = results.pandas().xyxy[0].values.tolist()
+            msg = DetectionArray()
+            msg.header.frame_id = data.header.frame_id
+            msg.header.stamp = super().get_clock().now().to_msg()
+            msg.preprocess = results.t[0]
+            msg.inference = results.t[1]
+            msg.nms = results.t[2]
+
+            results_list = results.xyxy[0].tolist()
+            msg.detection_count = len(results_list)
+            for result in results_list:
+                detection_msg = Detection()
+                detection_msg.xmin = result[0]
+                detection_msg.ymin = result[1]
+                detection_msg.xmax = result[2]
+                detection_msg.ymax = result[3]
+                detection_msg.confidence = result[4]
+                detection_msg.class_id = int(result[5])
+                detection_msg.name = self.model.names[result[5]]
+                msg.detections.append(detection_msg)
+
+            self.get_logger().info(str(msg))
+            self.detection_publisher.publish(msg)
 
 
 def main(args=None):

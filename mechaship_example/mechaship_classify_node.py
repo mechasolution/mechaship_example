@@ -8,7 +8,7 @@ from numpy.polynomial import Polynomial
 from mechaship_interfaces.msg import Classification, ClassificationArray
 
 
-class MechashipClassifyNode(Node):
+class MechashipClassify(Node):
     def __init__(self):
         super().__init__("mechaship_classify_node")
 
@@ -183,7 +183,7 @@ class MechashipClassifyNode(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = MechashipClassifyNode()
+    node = MechashipClassify()
     try:
         rclpy.spin(node)
 

@@ -7,7 +7,7 @@ from mechaship_interfaces.msg import ClassificationArray
 import cv2
 
 
-class MechashipClassifySubNode(Node):
+class MechashipClassifySub(Node):
     def __init__(self):
         super().__init__("mechaship_classify_sub_node")
 
@@ -113,7 +113,7 @@ class MechashipClassifySubNode(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = MechashipClassifySubNode()
+    node = MechashipClassifySub()
     try:
         rclpy.spin(node)
 
