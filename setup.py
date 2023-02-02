@@ -20,6 +20,7 @@ setup(
     entry_points={
         "console_scripts": [
             "mechaship_classify_node = mechaship_example.mechaship_classify_node:main",
+            "mechaship_classify_sub_node = mechaship_example.mechaship_classify_sub_node:main",
             "mechaship_detect_node = mechaship_example.mechaship_detect_node:main",
         ],
     },
