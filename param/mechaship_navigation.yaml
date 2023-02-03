@@ -1,0 +1,5 @@
+/mechaship_navigation_node:
+  ros__parameters:
+    ##### 그룹핑 관련 매개변수 #####
+    wall_safe_range: 5.0 # 분류 방식
+    buoy_safe_range: 3.0 # 분류 방식

@@ -30,6 +30,7 @@ setup(
             "mechaship_classify_sub_node = mechaship_example.mechaship_classify_sub_node:main",
             "mechaship_detect_node = mechaship_example.mechaship_detect_node:main",
             "mechaship_detect_sub_node = mechaship_example.mechaship_detect_sub_node:main",
+            "mechaship_navigation_node = mechaship_example.mechaship_navigation_node:main",
         ],
     },
 )

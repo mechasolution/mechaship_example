@@ -1,10 +1,10 @@
 /mechaship_classify_node:
   ros__parameters:
     ##### 그룹핑 관련 매개변수 #####
-    classify_method: "lsm"  # 분류 방식
+    classify_method: "lsm"       # 분류 방식
     differential_threshold: 5.0  # 기울기 그룹핑 기준값
     ##### 분류 관련 매개변수 #####
-    max_rho_index_range: 0.0  # index 범위(0~1)
-    classify_min_length: 10  # classify 최소 개수
-    classify_max_length: 100  # classify 최대 개수
+    max_rho_index_range: 0.0   # index 범위(0~1)
+    classify_min_length: 10    # classify 최소 개수
+    classify_max_length: 100   # classify 최대 개수
     classify_index_range: 0.3  # index 범위(0~1)

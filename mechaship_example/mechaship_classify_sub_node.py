@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from rclpy.parameter import Parameter
 import math
 import numpy as np
 from mechaship_interfaces.msg import ClassificationArray
@@ -9,7 +10,36 @@ import cv2
 
 class MechashipClassifySub(Node):
     def __init__(self):
-        super().__init__("mechaship_classify_sub_node")
+        super().__init__(
+            "mechaship_classify_sub_node",
+            allow_undeclared_parameters=True,
+            automatically_declare_parameters_from_overrides=True,
+        )
+        self.map_size = (
+            self.get_parameter_or(
+                "map_size", Parameter("map_size", Parameter.Type.INTEGER, 100)
+            )
+            .get_parameter_value()
+            .integer_value
+        )
+        self.turn_degree = (
+            self.get_parameter_or(
+                "turn_degree", Parameter("turn_degree", Parameter.Type.INTEGER, 270)
+            )
+            .get_parameter_value()
+            .integer_value
+        )
+        self.map_scale = (
+            self.get_parameter_or(
+                "map_scale", Parameter("map_scale", Parameter.Type.INTEGER, 100)
+            )
+            .get_parameter_value()
+            .integer_value
+        )
+
+        self.get_logger().info("map_size: %s" % (str(self.map_size)))
+        self.get_logger().info("turn_degree: %s" % (str(self.turn_degree)))
+        self.get_logger().info("map_scale: %s" % (str(self.map_scale)))
 
         qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
@@ -41,7 +71,7 @@ class MechashipClassifySub(Node):
         self.show_classification_array(self.buoy, "buoy", (100, 100), True)
         self.show_classification_array(self.wall, "wall", (100, 100), True)
 
-        self.show_map()
+        self.show_map((self.map_size, self.turn_degree, self.map_scale))
 
         cv2.waitKey(1)
 
