@@ -3,7 +3,7 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from rclpy.parameter import Parameter
 import math
-from mechaship_interfaces.msg import ClassificationArray
+from mechaship_interfaces.msg import ClassificationArray, DetectionArray
 from mechaship_interfaces.srv import Key, ThrottlePercentage, RGBColor
 
 
@@ -30,6 +30,14 @@ class MechashipNavigation(Node):
             .get_parameter_value()
             .double_value
         )
+        self.image_width = (
+            self.get_parameter_or(
+                "image_width",
+                Parameter("image_width", Parameter.Type.INTEGER, 400),
+            )
+            .get_parameter_value()
+            .integer_value
+        )
 
         self.get_logger().info("wall_safe_range: %s" % (str(self.wall_safe_range)))
         self.get_logger().info("buoy_safe_range: %s" % (str(self.buoy_safe_range)))
@@ -46,9 +54,16 @@ class MechashipNavigation(Node):
         self.wall_subscription = self.create_subscription(
             ClassificationArray, "/Wall", self.wall_listener_callback, qos_profile
         )
+        self.detection_subscription = self.create_subscription(
+            DetectionArray,
+            "/DetectionArray",
+            self.detection_listener_callback,
+            qos_profile,
+        )
 
         self.buoy_subscription  # prevent unused variable warning
         self.wall_subscription  # prevent unused variable warning
+        self.detection_subscription  # prevent unused variable warning
 
         self.create_timer(0.1, self.navigate)
 
@@ -60,6 +75,8 @@ class MechashipNavigation(Node):
 
         self.walls = []
         self.buoys = []
+
+        self.docking = False
 
     def wall_listener_callback(self, data):
         # self.get_logger().info("wall cnt: %s" % (len(data.classifications)))
@@ -75,8 +92,38 @@ class MechashipNavigation(Node):
         if len(self.buoys) > 10:
             del self.buoys[0]
 
+    def detection_listener_callback(self, data):
+        self.get_logger().info("detection cnt: %s" % (len(data.detections)))
+        for detection in data.detections:
+            if detection.name == "circle":
+                color = RGBColor.Request()
+                color.red = 255
+                color.green = 0
+                color.blue = 0
+                self.set_color_handler.call_async(color)
+                self.docking(detection)
+
+            elif detection.name == "triangle":
+                color = RGBColor.Request()
+                color.red = 0
+                color.green = 255
+                color.blue = 0
+                self.set_color_handler.call_async(color)
+                self.docking(detection)
+
+            elif detection.name == "square":
+                color = RGBColor.Request()
+                color.red = 0
+                color.green = 0
+                color.blue = 255
+                self.set_color_handler.call_async(color)
+                self.docking(detection)
+
     def navigate(self):
         if self.walls == None or self.buoys == None:
+            return
+
+        if self.docking:
             return
 
         cautions = self.get_cautions_map()
@@ -119,11 +166,18 @@ class MechashipNavigation(Node):
         else:
             throttle.percentage = 20
 
-        # color = RGBColor.Request()
-
         self.set_key_handler.call_async(key)
         self.set_throttle_handler.call_async(throttle)
-        # self.set_color_handler.call_async(color)
+
+    def docking(self, detection):
+        self.docking = True
+
+        center_x = (detection.xmin + detection.ymin) / 2.0
+        center_angle = int((center_x / self.image_width) * 62.2 + 60)
+
+        key = Key.Request()
+        key.degree = center_angle
+        self.set_key_handler.call_async(key)
 
     def get_cautions_map(self):
         cautions = [0 for i in range(360)]
