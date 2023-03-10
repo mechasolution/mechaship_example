@@ -76,7 +76,8 @@ class MechashipNavigation(Node):
         self.walls = []
         self.buoys = []
 
-        self.docking = False
+        self.isdocking = False
+        self.camera_fov = 62.2
 
     def wall_listener_callback(self, data):
         # self.get_logger().info("wall cnt: %s" % (len(data.classifications)))
@@ -123,7 +124,7 @@ class MechashipNavigation(Node):
         if self.walls == None or self.buoys == None:
             return
 
-        if self.docking:
+        if self.isdocking:
             return
 
         cautions = self.get_cautions_map()
@@ -170,10 +171,10 @@ class MechashipNavigation(Node):
         self.set_throttle_handler.call_async(throttle)
 
     def docking(self, detection):
-        self.docking = True
+        self.isdocking = True
 
-        center_x = (detection.xmin + detection.ymin) / 2.0
-        center_angle = int((center_x / self.image_width) * 62.2 + 60)
+        center_x = (detection.xmin + detection.xmax) / 2.0
+        center_angle = int((center_x / self.image_width) * self.camera_fov + 60)
 
         key = Key.Request()
         key.degree = center_angle
