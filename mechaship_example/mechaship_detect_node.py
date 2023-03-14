@@ -5,8 +5,16 @@ from rclpy.parameter import Parameter
 from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge
-from ultralytics import YOLO
+from ultralytics import YOLO, checks
 from mechaship_interfaces.msg import Detection, DetectionArray
+from glob import glob
+from os.path import join, exists
+from ament_index_python.packages import get_package_share_directory
+
+
+class ModelError(Exception):
+    def __str__(self):
+        return "YOLO 모델 파일이 확인되지 않습니다. 모델 파일의 경로와 파일명을 확인해주세요!"
 
 
 class MechashipDetect(Node):
@@ -16,18 +24,26 @@ class MechashipDetect(Node):
             allow_undeclared_parameters=True,
             automatically_declare_parameters_from_overrides=True,
         )
-        _model_path = (
+        _model_dir = join(get_package_share_directory(__package__), "model")
+        _model_file_name = (
             self.get_parameter_or(
-                "model_path",
+                "model_file_name",
                 Parameter(
-                    "model_path",
+                    "model_file_name",
                     Parameter.Type.STRING,
-                    "/home/jetson/mechaship/yolov8/best.pt",
+                    "",
                 ),
             )
             .get_parameter_value()
             .string_value
         )
+        if (_model_file_name) and (exists(join(_model_dir, _model_file_name))):
+            _model_path = join(_model_dir, _model_file_name)
+        elif glob(join(_model_dir, "*.pt")):
+            _model_path = glob(join(_model_dir, "*.pt"))[0]
+        else:
+            raise ModelError()
+
         self.model_conf = (
             self.get_parameter_or(
                 "model_conf",
@@ -39,6 +55,8 @@ class MechashipDetect(Node):
 
         self.get_logger().info("model_path: %s" % (_model_path))
         self.get_logger().info("model_conf: %s" % (self.model_conf))
+
+        checks()
         self.model = YOLO(_model_path)
 
         qos_profile = QoSProfile(
@@ -69,7 +87,7 @@ class MechashipDetect(Node):
             msg.header.stamp = super().get_clock().now().to_msg()
             msg.preprocess = results.speed["preprocess"]
             msg.inference = results.speed["inference"]
-            msg.nms = results.speed["postprocess"]
+            msg.postprocess = results.speed["postprocess"]
 
             results_list = results.boxes.xyxy
             msg.detection_count = len(results_list)

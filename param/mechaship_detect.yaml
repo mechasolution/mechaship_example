@@ -1,4 +1,4 @@
 /mechaship_detect_node:
   ros__parameters:
-    model_path: "/home/jetson/mechaship/yolov8/best.pt"  # yolov5 모델 파일 경로
-    model_conf: 0.7 # NMS 최소 정확도
+    model_file_name: ""   # yolov8 모델 파일 경로(best.pt)
+    model_conf: 0.25      # 최소 정확도
