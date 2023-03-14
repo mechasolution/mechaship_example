@@ -174,6 +174,7 @@ class MechashipNavigation(Node):
         self.isdocking = True
 
         center_x = (detection.xmin + detection.xmax) / 2.0
+        # center_x : image_width = center_angle : camera_fov
         center_angle = int((center_x / self.image_width) * self.camera_fov + 60)
 
         key = Key.Request()
