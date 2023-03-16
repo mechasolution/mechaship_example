@@ -7,11 +7,24 @@ import cv2
 from cv_bridge import CvBridge
 import torch
 from mechaship_interfaces.msg import Detection, DetectionArray
+from glob import glob
+from os.path import join, exists, isdir
+from ament_index_python.packages import get_package_share_directory
 
 
 class CudaError(Exception):
     def __str__(self):
         return "CUDA 설치 여부 확인이 필요합니다!"
+
+
+class YOLOError(Exception):
+    def __str__(self):
+        return "YOLOv5가 설치된 경로가 확인되지 않습니다. YOLOv5 경로를 확인해주세요!"
+
+
+class ModelError(Exception):
+    def __str__(self):
+        return "YOLO 모델 파일이 확인되지 않습니다. 모델 파일의 경로와 파일명을 확인해주세요!"
 
 
 class MechashipDetect(Node):
@@ -29,14 +42,30 @@ class MechashipDetect(Node):
             .get_parameter_value()
             .string_value
         )
-        _model_path = (
+
+        if not isdir(_yolov5_path):
+            raise YOLOError()
+
+        _model_dir = join(get_package_share_directory(__package__), "model")
+        _model_file_name = (
             self.get_parameter_or(
-                "model_path",
-                Parameter("model_path", Parameter.Type.STRING, "/home/jetson/best.pt"),
+                "model_file_name",
+                Parameter(
+                    "model_file_name",
+                    Parameter.Type.STRING,
+                    "",
+                ),
             )
             .get_parameter_value()
             .string_value
         )
+        if (_model_file_name) and (exists(join(_model_dir, _model_file_name))):
+            _model_path = join(_model_dir, _model_file_name)
+        elif glob(join(_model_dir, "*.pt")):
+            _model_path = glob(join(_model_dir, "*.pt"))[0]
+        else:
+            raise ModelError()
+
         _model_conf = (
             self.get_parameter_or(
                 "model_conf",
@@ -63,7 +92,7 @@ class MechashipDetect(Node):
         )
         self.batch_size = (
             self.get_parameter_or(
-                "batch_size", Parameter("batch_size", Parameter.Type.INTEGER, 300)
+                "batch_size", Parameter("batch_size", Parameter.Type.INTEGER, 320)
             )
             .get_parameter_value()
             .integer_value

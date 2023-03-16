@@ -10,7 +10,7 @@ from mechaship_interfaces.msg import Classification, ClassificationArray
 
 
 class MechashipClassify(Node):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             "mechaship_classify_node",
             allow_undeclared_parameters=True,
@@ -92,7 +92,12 @@ class MechashipClassify(Node):
             ClassificationArray, "Wall", qos_profile
         )
 
-    def listener_callback(self, data):
+    def listener_callback(self, data: LaserScan) -> None:
+        """/scan 토픽 콜백
+
+        Args:
+            data (LaserScan): 라이다 데이터(/scan)
+        """
         self.get_logger().info("ranges cnt: %s" % (len(data.ranges)))
         self.get_logger().info("rad min: %s" % (math.degrees(data.angle_min)))
         self.get_logger().info("rad max: %s" % (math.degrees(data.angle_max)))
@@ -108,13 +113,13 @@ class MechashipClassify(Node):
                 thetas.append(angle)
             angle += data.angle_increment
 
-        # 극좌표계 적분해서 기울기로 그룹핑
+        # 극좌표계 미분해서 기울기로 그룹핑
         polar_coordinates_group = self.grouping_with_differential(
             rhos, thetas, self.differential_threshold
         )
 
         if self.classify_method == "rho":
-            # rho로 분리하는 방법
+            # max rho로 분리하는 방법
             polar_coordinates_group = self.regrouping_with_max_rho(
                 polar_coordinates_group, self.max_rho_index_range
             )
@@ -136,8 +141,20 @@ class MechashipClassify(Node):
         self.buoy_publisher.publish(buoy)
         self.wall_publisher.publish(wall)
 
-    def grouping_with_differential(self, rhos, thetas, threshold):
-        rhos_df = np.r_[0, np.diff(rhos)] / 0.1
+    def grouping_with_differential(
+        self, rhos: list, thetas: list, threshold: float
+    ) -> list:
+        """극좌표계 좌표(각도, 거리)를 미분해서 기울기의 임계값으로 그룹핑
+
+        Args:
+            rhos (list): 거리
+            thetas (list): 각도
+            threshold (float): 기울기 임계값
+
+        Returns:
+            list: 그룹핑된 극좌표계 2차원 배열(rho, theta)
+        """
+        rhos_df = np.r_[0, np.diff(rhos)] / (thetas[1] - thetas[0])
 
         polar_coordinates_group = []
         polar_coordinates = []
@@ -150,11 +167,22 @@ class MechashipClassify(Node):
 
         return polar_coordinates_group
 
-    def regrouping_with_max_rho(self, polar_coordinates_group, index_range=0):
-        # index_range : 0~1
+    def regrouping_with_max_rho(
+        self, polar_coordinates_group: list, index_range: float = 0
+    ) -> list:
+        """한 그룹의 최대 거리(max_rho)를 기준으로 재그룹핑
+        (최대 거리의 index가 처음 또는 끝이 아닐 경우 그룹 분리)
+
+        Args:
+            polar_coordinates_group (list): 그룹핑된 극좌표계 2차원 배열(rho, theta)
+            index_range (float, optional): 그룹핑 옵션(0~1). Defaults to 0.
+
+        Returns:
+            list: 재그룹핑된 극좌표계 2차원 배열(rho, theta)
+        """
         polar_coordinates_regroup = []
         for polar_coordinates in polar_coordinates_group[2:]:
-            rhos = list(map(lambda x: x[0], polar_coordinates))
+            rhos = [x[0] for x in polar_coordinates]
             max_rho_index = rhos.index(max(rhos))
 
             if index_range == 0:
@@ -175,8 +203,20 @@ class MechashipClassify(Node):
 
         return polar_coordinates_regroup
 
-    def classify_with_rho(self, polar_coordinates_group, min_length=0, index_range=0):
-        # index_range : 0~1
+    def classify_with_rho(
+        self, polar_coordinates_group: list, min_length: int = 0, index_range: float = 0
+    ) -> tuple:
+        """rho로 부표와 벽으로 분류(min_rho가 중간, max_rho가 처음 또는 끝일 경우)
+
+        Args:
+            polar_coordinates_group (list): 그룹핑된 극좌표계 2차원 배열(rho, theta)
+            min_length (int, optional): 한 그룹 내 최소 좌표 개수. Defaults to 0.
+                (min_length보다 좌표 개수가 적은 그룹은 생략)
+            index_range (float, optional): 그룹핑 옵션(0~1). Defaults to 0.
+
+        Returns:
+            tuple: 부표와 벽으로 구분된 Classification 메세지
+        """
         buoy = Classification()
         wall = Classification()
 
@@ -185,7 +225,7 @@ class MechashipClassify(Node):
             if length < min_length:
                 continue
 
-            rhos = list(map(lambda x: x[0], polar_coordinates))
+            rhos = [x[0] for x in polar_coordinates]
             min_rho_index = rhos.index(min(rhos))
             if min_rho_index == 0 or min_rho_index == length - 1:
                 wall.ranges.append(polar_coordinates[0])
@@ -229,7 +269,21 @@ class MechashipClassify(Node):
 
         return buoy, wall
 
-    def classify_with_LSM(self, polar_coordinates_group, min_length=0, max_length=100):
+    def classify_with_LSM(
+        self, polar_coordinates_group: list, min_length: int = 0, max_length: int = 100
+    ) -> tuple:
+        """최소차승법으로 부표와 벽으로 분류(기울기가 양인 경우 부표로 분리)
+
+        Args:
+            polar_coordinates_group (list): 그룹핑된 극좌표계 2차원 배열(rho, theta)
+            min_length (int, optional): 한 그룹 내 최소 좌표 개수. Defaults to 0.
+                (min_length보다 좌표 개수가 적은 그룹은 생략)
+            max_length (int, optional): 한 그룹 내 최대 좌표 개수. Defaults to 100.
+                (max_length보다 좌표 개수가 많은 그룹은 생략)
+
+        Returns:
+            tuple: 부표와 벽으로 구분된 Classification 메세지
+        """
         buoy = ClassificationArray()
         wall = ClassificationArray()
 
@@ -240,8 +294,8 @@ class MechashipClassify(Node):
 
             coords = Classification()
 
-            coords.ranges = list(map(lambda x: x[0], polar_coordinates))
-            coords.thetas = list(map(lambda x: x[1], polar_coordinates))
+            coords.ranges = [x[0] for x in polar_coordinates]
+            coords.thetas = [x[1] for x in polar_coordinates]
 
             # 최소 차승법
             fx = Polynomial.fit(coords.thetas, coords.ranges, deg=2).convert()
