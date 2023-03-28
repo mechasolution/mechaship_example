@@ -9,6 +9,7 @@
 
   <build_depend>mechaship_interfaces</build_depend>
   <exec_depend>mechaship_interfaces</exec_depend>
+  <exec_depend>imu_tools</exec_depend>
 
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
