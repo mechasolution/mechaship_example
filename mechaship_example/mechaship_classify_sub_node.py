@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from rclpy.qos import qos_profile_sensor_data
 from rclpy.parameter import Parameter
 import math
 import numpy as np
@@ -41,17 +41,17 @@ class MechashipClassifySub(Node):
         self.get_logger().info("turn_degree: %s" % (str(self.turn_degree)))
         self.get_logger().info("map_scale: %s" % (str(self.map_scale)))
 
-        qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-            history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-            depth=1,
-        )
-
         self.buoy_subscription = self.create_subscription(
-            ClassificationArray, "/Buoy", self.buoy_listener_callback, qos_profile
+            ClassificationArray,
+            "/Buoy",
+            self.buoy_listener_callback,
+            qos_profile_sensor_data,
         )
         self.wall_subscription = self.create_subscription(
-            ClassificationArray, "/Wall", self.wall_listener_callback, qos_profile
+            ClassificationArray,
+            "/Wall",
+            self.wall_listener_callback,
+            qos_profile_sensor_data,
         )
 
         self.buoy_subscription  # prevent unused variable warning

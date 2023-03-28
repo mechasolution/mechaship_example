@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from rclpy.qos import qos_profile_sensor_data
 from rclpy.parameter import Parameter
 import math
 from mechaship_interfaces.msg import ClassificationArray, DetectionArray
@@ -42,23 +42,23 @@ class MechashipNavigation(Node):
         self.get_logger().info("wall_safe_range: %s" % (str(self.wall_safe_range)))
         self.get_logger().info("buoy_safe_range: %s" % (str(self.buoy_safe_range)))
 
-        qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-            history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-            depth=3,
-        )
-
         self.buoy_subscription = self.create_subscription(
-            ClassificationArray, "/Buoy", self.buoy_listener_callback, qos_profile
+            ClassificationArray,
+            "/Buoy",
+            self.buoy_listener_callback,
+            qos_profile_sensor_data,
         )
         self.wall_subscription = self.create_subscription(
-            ClassificationArray, "/Wall", self.wall_listener_callback, qos_profile
+            ClassificationArray,
+            "/Wall",
+            self.wall_listener_callback,
+            qos_profile_sensor_data,
         )
         self.detection_subscription = self.create_subscription(
             DetectionArray,
             "/DetectionArray",
             self.detection_listener_callback,
-            qos_profile,
+            qos_profile_sensor_data,
         )
 
         self.buoy_subscription  # prevent unused variable warning

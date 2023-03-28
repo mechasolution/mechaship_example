@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from rclpy.qos import qos_profile_sensor_data
 from rclpy.parameter import Parameter
 from sensor_msgs.msg import LaserScan
 import math
@@ -74,22 +74,16 @@ class MechashipClassify(Node):
         self.get_logger().info("classify_max_length: %s" % (self.classify_max_length))
         self.get_logger().info("classify_index_range: %s" % (self.classify_index_range))
 
-        qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-            history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-            depth=1,
-        )
-
         self.scan_subscription = self.create_subscription(
-            LaserScan, "/scan", self.listener_callback, qos_profile
+            LaserScan, "/scan", self.listener_callback, qos_profile_sensor_data
         )
         self.scan_subscription  # prevent unused variable warning
 
         self.buoy_publisher = self.create_publisher(
-            ClassificationArray, "Buoy", qos_profile
+            ClassificationArray, "Buoy", qos_profile_sensor_data
         )
         self.wall_publisher = self.create_publisher(
-            ClassificationArray, "Wall", qos_profile
+            ClassificationArray, "Wall", qos_profile_sensor_data
         )
 
     def listener_callback(self, data: LaserScan) -> None:

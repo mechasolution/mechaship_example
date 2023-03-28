@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
 import cv2
 from cv_bridge import CvBridge
@@ -11,20 +11,14 @@ class MechashipDetectSub(Node):
     def __init__(self):
         super().__init__("mechaship_detect_sub_node")
 
-        qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-            history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-            depth=1,
-        )
-
         self.image_subscription = self.create_subscription(
-            Image, "/Image", self.image_listener_callback, qos_profile
+            Image, "/Image", self.image_listener_callback, qos_profile_sensor_data
         )
         self.detection_subscription = self.create_subscription(
             DetectionArray,
             "/DetectionArray",
             self.detection_listener_callback,
-            qos_profile,
+            qos_profile_sensor_data,
         )
 
         self.image_subscription  # prevent unused variable warning
