@@ -24,6 +24,7 @@ def generate_launch_description():
             {"mag_bias_y": 0},
             {"mag_bias_z": 0},
             {"gain": 0.001},
+            {"fixed_frame": "imu_link"},
         ],
     )
 
