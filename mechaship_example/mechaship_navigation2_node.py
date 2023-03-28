@@ -29,7 +29,7 @@ class MechashipNavigation2(Node):
                 Parameter("range_start_angle", Parameter.Type.INTEGER, 85),
             )
             .get_parameter_value()
-            .double_value
+            .integer_value
         )
         self.range_end_angle = (
             self.get_parameter_or(
@@ -37,7 +37,7 @@ class MechashipNavigation2(Node):
                 Parameter("range_end_angle", Parameter.Type.INTEGER, 95),
             )
             .get_parameter_value()
-            .double_value
+            .integer_value
         )
         self.docking_shape = (
             self.get_parameter_or(
@@ -77,7 +77,7 @@ class MechashipNavigation2(Node):
                 Parameter("docking_color_g", Parameter.Type.INTEGER, 0),
             )
             .get_parameter_value()
-            .string_value
+            .integer_value
         )
         self.docking_color_b = (
             self.get_parameter_or(
@@ -85,7 +85,7 @@ class MechashipNavigation2(Node):
                 Parameter("docking_color_b", Parameter.Type.INTEGER, 255),
             )
             .get_parameter_value()
-            .string_value
+            .integer_value
         )
 
         self.get_logger().info("range_distance: %s" % (str(self.range_distance)))
@@ -133,11 +133,11 @@ class MechashipNavigation2(Node):
         Args:
             data (LaserScan): 라이다 데이터(/scan)
         """
-        self.get_logger().info("ranges cnt: %s" % (len(data.ranges)))
-        self.get_logger().info("rad min: %s" % (math.degrees(data.angle_min)))
-        self.get_logger().info("rad max: %s" % (math.degrees(data.angle_max)))
-        self.get_logger().info("range min: %s" % (data.range_min))
-        self.get_logger().info("range max: %s" % (data.range_max))
+        # self.get_logger().info("ranges cnt: %s" % (len(data.ranges)))
+        # self.get_logger().info("rad min: %s" % (math.degrees(data.angle_min)))
+        # self.get_logger().info("rad max: %s" % (math.degrees(data.angle_max)))
+        # self.get_logger().info("range min: %s" % (data.range_min))
+        # self.get_logger().info("range max: %s" % (data.range_max))
 
         target_ranges = []
         dangerous_angles = []
@@ -165,8 +165,9 @@ class MechashipNavigation2(Node):
         Args:
             data (DetectionArray): 객체 탐지 데이터(/DetectionArray)
         """
-        self.get_logger().info("detection cnt: %s" % (len(data.detections)))
+        # self.get_logger().info("detection cnt: %s" % (len(data.detections)))
         waypoint = [0, 0]
+        self.targets["docking"] = []
         for detection in data.detections:
             if detection.name == self.waypoint_left:
                 waypoint[0] = detection
