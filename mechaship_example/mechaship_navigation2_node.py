@@ -110,7 +110,7 @@ class MechashipNavigation2(Node):
         self.scan_subscription  # prevent unused variable warning
         self.detection_subscription  # prevent unused variable warning
 
-        self.create_timer(0.1, self.navigate)
+        self.create_timer(0.5, self.navigate)
 
         self.set_key_handler = self.create_client(Key, "/actuators/key/set")
         self.set_throttle_handler = self.create_client(
@@ -143,16 +143,16 @@ class MechashipNavigation2(Node):
         dangerous_angles = []
         angle = data.angle_min
         for scan_data in data.ranges:
+            if scan_data != 0 or not math.isinf(scan_data):
+                angle += data.angle_increment
+                continue
+
             if scan_data < self.range_distance:
                 dangerous_angles.append(round(math.degrees(angle)))
 
             if angle > math.radians(self.range_end_angle):
                 break
-            elif (
-                angle > math.radians(self.range_start_angle)
-                and (scan_data != 0)
-                and (not math.isinf(scan_data))
-            ):
+            elif angle > math.radians(self.range_start_angle):
                 target_ranges.append(scan_data)
             angle += data.angle_increment
 

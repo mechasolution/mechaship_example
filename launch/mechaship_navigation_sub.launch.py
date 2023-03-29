@@ -28,7 +28,7 @@ def generate_launch_description():
         ),
     )
     mechaship_classify_sub_arg = DeclareLaunchArgument(
-        "mechaship_classify_params",
+        "mechaship_classify_sub_params",
         default_value=mechaship_classify_sub_params,
     )
     mechaship_classify_sub = Node(

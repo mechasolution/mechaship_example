@@ -1,9 +1,9 @@
 /mechaship_navigation2_node:
   ros__parameters:
-    range_distance: 1.0     # 안전 거리(M)
+    range_distance: 0.5     # 안전 거리(M)
     range_start_angle: 85   # 시작 각도
     range_end_angle: 95     # 끝 각도
-    docking_shape: "blue_circle"  # 도킹할 도형
+    docking_shape: "red_circle"  # 도킹할 도형
     waypoint_right: "vertical_buoy"   # 경유지의 우측 부표
     waypoint_left: "horizontal_buoy"  # 경유지의 좌측 부표
     docking_color_r: 0    # 도킹 시 LED 색상(R)
