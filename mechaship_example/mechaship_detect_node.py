@@ -152,7 +152,7 @@ class MechashipDetect(Node):
                 detection_msg.name = self.model.names[result[5]]
                 msg.detections.append(detection_msg)
 
-            self.get_logger().info(str(msg))
+            # self.get_logger().info(str(msg))
             self.detection_publisher.publish(msg)
 
 

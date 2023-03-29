@@ -69,7 +69,7 @@ class MechashipNavigation2(Node):
                 Parameter("docking_color_r", Parameter.Type.INTEGER, 0),
             )
             .get_parameter_value()
-            .string_value
+            .integer_value
         )
         self.docking_color_g = (
             self.get_parameter_or(
@@ -210,18 +210,20 @@ class MechashipNavigation2(Node):
 
         # range_distance 이내에 장애물이 있을 경우(감속, 회피)
         if len(self.dangerous_angles) > 0:
+            self.get_logger().info("dangerous")
             dangerous_angles_mean = round(
                 sum(self.dangerous_angles) / len(self.dangerous_angles)
             )
             goal_angle = (dangerous_angles_mean + 180) % 360
             key.degree = self.constrain(270 - goal_angle, 60, 120)
-            throttle.percentage = 10
+            throttle.percentage = 15
 
         # 경유할 경우
         elif (
             self.targets["waypoint"]["left"] != 0
             or self.targets["waypoint"]["right"] != 0
         ):
+            self.get_logger().info("waypoint")
             waypoint_left = self.targets["waypoint"]["left"]
             waypoint_right = self.targets["waypoint"]["right"]
             if waypoint_left == 0:  # 좌측 부표 X(우측 부표만 인식)
@@ -242,6 +244,7 @@ class MechashipNavigation2(Node):
 
         # docking 할 경우
         elif len(self.targets["docking"]) > 0:
+            self.get_logger().info("docking")
             docking_target = self.targets["docking"][0]
             center_x = (docking_target.xmin + docking_target.xmax) / 2.0
             goal_angle = int((center_x * self.camera_fov) / self.image_width + 60)
@@ -250,6 +253,7 @@ class MechashipNavigation2(Node):
 
         # 우측 벽을 따라 운항
         else:
+            self.get_logger().info("go")
             key.degree = 95
             throttle.percentage = 20
 
