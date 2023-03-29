@@ -9,9 +9,9 @@ def generate_launch_description():
         executable="imu_filter_madgwick_node",
         name="imu_filter_madgwick_node",
         parameters=[
-            {"mag_bias_x": 0},
-            {"mag_bias_y": 0},
-            {"mag_bias_z": 0},
+            {"mag_bias_x": 0.0},
+            {"mag_bias_y": 0.0},
+            {"mag_bias_z": 0.0},
             {"gain": 0.001},
             {"fixed_frame": "imu_link"},
         ],
