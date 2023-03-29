@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from rclpy.qos import qos_profile_sensor_data
 from rclpy.parameter import Parameter
 from sensor_msgs.msg import LaserScan
 import math
@@ -29,7 +29,7 @@ class MechashipNavigation2(Node):
                 Parameter("range_start_angle", Parameter.Type.INTEGER, 85),
             )
             .get_parameter_value()
-            .double_value
+            .integer_value
         )
         self.range_end_angle = (
             self.get_parameter_or(
@@ -37,7 +37,7 @@ class MechashipNavigation2(Node):
                 Parameter("range_end_angle", Parameter.Type.INTEGER, 95),
             )
             .get_parameter_value()
-            .double_value
+            .integer_value
         )
         self.docking_shape = (
             self.get_parameter_or(
@@ -69,7 +69,7 @@ class MechashipNavigation2(Node):
                 Parameter("docking_color_r", Parameter.Type.INTEGER, 0),
             )
             .get_parameter_value()
-            .string_value
+            .integer_value
         )
         self.docking_color_g = (
             self.get_parameter_or(
@@ -77,7 +77,7 @@ class MechashipNavigation2(Node):
                 Parameter("docking_color_g", Parameter.Type.INTEGER, 0),
             )
             .get_parameter_value()
-            .string_value
+            .integer_value
         )
         self.docking_color_b = (
             self.get_parameter_or(
@@ -85,7 +85,7 @@ class MechashipNavigation2(Node):
                 Parameter("docking_color_b", Parameter.Type.INTEGER, 255),
             )
             .get_parameter_value()
-            .string_value
+            .integer_value
         )
 
         self.get_logger().info("range_distance: %s" % (str(self.range_distance)))
@@ -96,21 +96,15 @@ class MechashipNavigation2(Node):
         self.get_logger().info("docking_color_g: %s" % (str(self.docking_color_g)))
         self.get_logger().info("docking_color_b: %s" % (str(self.docking_color_b)))
 
-        qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
-            history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-            depth=1,
-        )
-
         self.scan_subscription = self.create_subscription(
-            LaserScan, "/scan", self.scan_listener_callback, qos_profile
+            LaserScan, "/scan", self.scan_listener_callback, qos_profile_sensor_data
         )
 
         self.detection_subscription = self.create_subscription(
             DetectionArray,
             "/DetectionArray",
             self.detection_listener_callback,
-            qos_profile,
+            qos_profile_sensor_data,
         )
 
         self.scan_subscription  # prevent unused variable warning
@@ -139,11 +133,11 @@ class MechashipNavigation2(Node):
         Args:
             data (LaserScan): 라이다 데이터(/scan)
         """
-        self.get_logger().info("ranges cnt: %s" % (len(data.ranges)))
-        self.get_logger().info("rad min: %s" % (math.degrees(data.angle_min)))
-        self.get_logger().info("rad max: %s" % (math.degrees(data.angle_max)))
-        self.get_logger().info("range min: %s" % (data.range_min))
-        self.get_logger().info("range max: %s" % (data.range_max))
+        # self.get_logger().info("ranges cnt: %s" % (len(data.ranges)))
+        # self.get_logger().info("rad min: %s" % (math.degrees(data.angle_min)))
+        # self.get_logger().info("rad max: %s" % (math.degrees(data.angle_max)))
+        # self.get_logger().info("range min: %s" % (data.range_min))
+        # self.get_logger().info("range max: %s" % (data.range_max))
 
         target_ranges = []
         dangerous_angles = []
@@ -171,8 +165,9 @@ class MechashipNavigation2(Node):
         Args:
             data (DetectionArray): 객체 탐지 데이터(/DetectionArray)
         """
-        self.get_logger().info("detection cnt: %s" % (len(data.detections)))
+        # self.get_logger().info("detection cnt: %s" % (len(data.detections)))
         waypoint = [0, 0]
+        self.targets["docking"] = []
         for detection in data.detections:
             if detection.name == self.waypoint_left:
                 waypoint[0] = detection
@@ -215,18 +210,20 @@ class MechashipNavigation2(Node):
 
         # range_distance 이내에 장애물이 있을 경우(감속, 회피)
         if len(self.dangerous_angles) > 0:
+            self.get_logger().info("dangerous")
             dangerous_angles_mean = round(
                 sum(self.dangerous_angles) / len(self.dangerous_angles)
             )
             goal_angle = (dangerous_angles_mean + 180) % 360
             key.degree = self.constrain(270 - goal_angle, 60, 120)
-            throttle.percentage = 10
+            throttle.percentage = 15
 
         # 경유할 경우
         elif (
             self.targets["waypoint"]["left"] != 0
             or self.targets["waypoint"]["right"] != 0
         ):
+            self.get_logger().info("waypoint")
             waypoint_left = self.targets["waypoint"]["left"]
             waypoint_right = self.targets["waypoint"]["right"]
             if waypoint_left == 0:  # 좌측 부표 X(우측 부표만 인식)
@@ -247,6 +244,7 @@ class MechashipNavigation2(Node):
 
         # docking 할 경우
         elif len(self.targets["docking"]) > 0:
+            self.get_logger().info("docking")
             docking_target = self.targets["docking"][0]
             center_x = (docking_target.xmin + docking_target.xmax) / 2.0
             goal_angle = int((center_x * self.camera_fov) / self.image_width + 60)
@@ -255,6 +253,7 @@ class MechashipNavigation2(Node):
 
         # 우측 벽을 따라 운항
         else:
+            self.get_logger().info("go")
             key.degree = 95
             throttle.percentage = 20
 
