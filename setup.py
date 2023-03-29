@@ -33,6 +33,7 @@ setup(
             "mechaship_detect_sub_node = mechaship_example.mechaship_detect_sub_node:main",
             "mechaship_navigation_node = mechaship_example.mechaship_navigation_node:main",
             "mechaship_imu_mag_hard_iron_node = mechaship_example.mechaship_imu_mag_hard_iron_node:main",
+            "mechaship_imu_quat_to_euler = mechaship_example.mechaship_imu_quat_to_euler:main",
         ],
     },
 )
