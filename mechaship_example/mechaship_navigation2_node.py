@@ -125,6 +125,7 @@ class MechashipNavigation2(Node):
         }
         self.dangerous_angles = []
         self.camera_fov = 62.2
+        self.side_angle = (180 - self.camera_fov) / 2.0
         self.image_width = 400
 
     def scan_listener_callback(self, data: LaserScan) -> None:
@@ -214,8 +215,8 @@ class MechashipNavigation2(Node):
             dangerous_angles_mean = round(
                 sum(self.dangerous_angles) / len(self.dangerous_angles)
             )
-            goal_angle = (dangerous_angles_mean + 180) % 360
-            key.degree = self.constrain(270 - goal_angle, 60, 120)
+            goal_angle = (360 + 90 - dangerous_angles_mean) % 360
+            key.degree = self.constrain(goal_angle, 60, 120)
             throttle.percentage = 15
 
         # 경유할 경우
@@ -227,19 +228,23 @@ class MechashipNavigation2(Node):
             waypoint_left = self.targets["waypoint"]["left"]
             waypoint_right = self.targets["waypoint"]["right"]
             if waypoint_left == 0:  # 좌측 부표 X(우측 부표만 인식)
-                goal_angle = int(
-                    (waypoint_right.xmin * self.camera_fov) / self.image_width + 60
+                goal_angle = 180 - int(
+                    (waypoint_right.xmin * self.camera_fov) / self.image_width
+                    + self.side_angle
                 )
-                key.degree = self.constrain(270 - goal_angle + 10, 60, 120)
+                key.degree = self.constrain(goal_angle + 10, 60, 120)
             elif waypoint_right == 0:  # 우측 부표 X(좌측 부표만 인식)
-                goal_angle = int(
-                    (waypoint_left.xmax * self.camera_fov) / self.image_width + 60
+                goal_angle = 180 - int(
+                    (waypoint_left.xmax * self.camera_fov) / self.image_width
+                    + self.side_angle
                 )
-                key.degree = self.constrain(270 - goal_angle - 10, 60, 120)
+                key.degree = self.constrain(goal_angle - 10, 60, 120)
             else:  # 부표 둘 다 인식
                 center_x = (waypoint_left.xmax + waypoint_right.xmin) / 2.0
-                goal_angle = int((center_x * self.camera_fov) / self.image_width + 60)
-                key.degree = self.constrain(270 - goal_angle, 60, 120)
+                goal_angle = 180 - int(
+                    (center_x * self.camera_fov) / self.image_width + self.side_angle
+                )
+                key.degree = self.constrain(goal_angle, 60, 120)
             throttle.percentage = 20
 
         # docking 할 경우
@@ -247,8 +252,10 @@ class MechashipNavigation2(Node):
             self.get_logger().info("docking")
             docking_target = self.targets["docking"][0]
             center_x = (docking_target.xmin + docking_target.xmax) / 2.0
-            goal_angle = int((center_x * self.camera_fov) / self.image_width + 60)
-            key.degree = self.constrain(270 - goal_angle, 60, 120)
+            goal_angle = 180 - int(
+                (center_x * self.camera_fov) / self.image_width + self.side_angle
+            )
+            key.degree = self.constrain(goal_angle, 60, 120)
             throttle.percentage = 20
 
         # 우측 벽을 따라 운항
