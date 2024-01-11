@@ -2,9 +2,11 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>mechaship_example</name>
-  <version>0.0.0</version>
-  <description>ROS2 Example for Mechasolution Autoship 2023 Project</description>
-  <maintainer email="sydney@mechasolution.com">Sydney Kim</maintainer>
+  <version>0.1.0</version>
+  <description>ROS 2 example for MechaShip</description>
+  <author email="max@mechasolution.com">Max Cha</author>
+  <author email="sydney@mechasolution.com">Sydney Kim</author>
+  <maintainer email="techms5499@gmail.com">Mechasolution</maintainer>
   <license>Apache 2.0</license>
 
   <build_depend>mechaship_interfaces</build_depend>

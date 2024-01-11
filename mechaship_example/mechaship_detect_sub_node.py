@@ -1,10 +1,10 @@
+import cv2
 import rclpy
+from cv_bridge import CvBridge
+from mechaship_interfaces.msg import DetectionArray
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
-import cv2
-from cv_bridge import CvBridge
-from mechaship_interfaces.msg import DetectionArray
 
 
 class MechashipDetectSub(Node):

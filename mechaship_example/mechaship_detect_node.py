@@ -1,15 +1,16 @@
-import rclpy
-from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
-from rclpy.parameter import Parameter
-from sensor_msgs.msg import Image
-import cv2
-from cv_bridge import CvBridge
-import torch
-from mechaship_interfaces.msg import Detection, DetectionArray
 from glob import glob
-from os.path import join, exists, isdir
+from os.path import exists, isdir, join
+
+import cv2
+import rclpy
+import torch
 from ament_index_python.packages import get_package_share_directory
+from cv_bridge import CvBridge
+from mechaship_interfaces.msg import Detection, DetectionArray
+from rclpy.node import Node
+from rclpy.parameter import Parameter
+from rclpy.qos import qos_profile_sensor_data
+from sensor_msgs.msg import Image
 
 
 class CudaError(Exception):

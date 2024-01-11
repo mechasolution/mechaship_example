@@ -1,16 +1,9 @@
-import os
-import numpy as np
-import datetime
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import math
-
 
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Imu
-
 from transforms3d import euler
 
 
@@ -19,7 +12,9 @@ class MechashipImuQuatToEuler(Node):
         super().__init__("mechaship_imu_quat_to_euler")
         self._is_first_data = False
 
-        self.create_subscription(Imu, "imu/data", self._imu_sub_callback, qos_profile_sensor_data)
+        self.create_subscription(
+            Imu, "imu/data", self._imu_sub_callback, qos_profile_sensor_data
+        )
         self._timer_hd = self.create_timer(5, self._mag_data_monitor)
 
     def _mag_data_monitor(self):
@@ -32,7 +27,9 @@ class MechashipImuQuatToEuler(Node):
         self._is_first_data = True
 
         quat_data = data.orientation
-        x, y, z = euler.quat2euler([quat_data.w, quat_data.x, quat_data.y, quat_data.z], "sxyz")
+        x, y, z = euler.quat2euler(
+            [quat_data.w, quat_data.x, quat_data.y, quat_data.z], "sxyz"
+        )
         x = 359 - ((x * 180 / math.pi + 180) % 360) % 360
         y = 359 - ((y * 180 / math.pi + 180) % 360) % 360
         z = 359 - ((z * 180 / math.pi + 180) % 360) % 360
