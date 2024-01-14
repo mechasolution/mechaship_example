@@ -1,12 +1,13 @@
-import rclpy
-from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
-from rclpy.parameter import Parameter
-from sensor_msgs.msg import LaserScan
 import math
+
 import numpy as np
-from numpy.polynomial import Polynomial
+import rclpy
 from mechaship_interfaces.msg import Classification, ClassificationArray
+from numpy.polynomial import Polynomial
+from rclpy.node import Node
+from rclpy.parameter import Parameter
+from rclpy.qos import qos_profile_sensor_data
+from sensor_msgs.msg import LaserScan
 
 
 class MechashipClassify(Node):

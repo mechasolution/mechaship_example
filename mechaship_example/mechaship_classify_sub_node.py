@@ -1,18 +1,19 @@
-import rclpy
-from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
-from rclpy.parameter import Parameter
 import math
-import numpy as np
-from mechaship_interfaces.msg import ClassificationArray
+
 import cv2
+import numpy as np
+import rclpy
+from mechaship_interfaces.msg import ClassificationArray
+from rclpy.node import Node
+from rclpy.parameter import Parameter
+from rclpy.qos import qos_profile_sensor_data
 
 
 class MechashipClassifySub(Node):
     def __init__(self):
         super().__init__(
             "mechaship_classify_sub_node",
-            allow_undeclared_parameters=True,
+            allow_undeclared_parameters=  True,
             automatically_declare_parameters_from_overrides=True,
         )
         self.map_size = (

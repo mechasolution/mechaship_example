@@ -9,7 +9,7 @@ from sensor_msgs.msg import Image
 
 class MechashipDetectSub(Node):
     def __init__(self):
-        super().__init__("mechaship_detect_sub_node")
+        super().__init__(  "mechaship_detect_sub_node")
 
         self.image_subscription = self.create_subscription(
             Image, "/Image", self.image_listener_callback, qos_profile_sensor_data

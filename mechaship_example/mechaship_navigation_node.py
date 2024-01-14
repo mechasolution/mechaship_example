@@ -1,10 +1,11 @@
-import rclpy
-from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
-from rclpy.parameter import Parameter
 import math
+
+import rclpy
 from mechaship_interfaces.msg import ClassificationArray, DetectionArray
-from mechaship_interfaces.srv import Key, ThrottlePercentage, RGBColor
+from mechaship_interfaces.srv import Key, RGBColor, ThrottlePercentage
+from rclpy.node import Node
+from rclpy.parameter import Parameter
+from rclpy.qos import qos_profile_sensor_data
 
 
 class MechashipNavigation(Node):
