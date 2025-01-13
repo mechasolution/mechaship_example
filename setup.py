@@ -28,6 +28,7 @@ setup(
             "emo_switch_example = mechaship_example.emo_switch_example:main",
             "imu_key_example = mechaship_example.imu_key_example:main",
             "lidar_slice_front_example = mechaship_example.lidar_slice_front_example:main",
+            "gps_example = mechaship_example.gps_example:main",
         ],
     },
 )
