@@ -16,7 +16,7 @@ class ImuKeyExampleNode(Node):
         # 노드의 이름을 "imukey_example_node"로 초기화
         super().__init__("imukey_example_node")
 
-        # "/imu" 토픽을 구독하고, 메시지가 도착하면 listener_callback을 호출
+        # "/imu" 토픽을 구독하고, 메시지가 도착하면 imu_callback 호출
         self.create_subscription(
             Imu,
             "/imu",

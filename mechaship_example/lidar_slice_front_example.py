@@ -11,15 +11,15 @@ class LidarPublisher(Node):
     def __init__(self):
         # 노드의 이름을 "lidar_publisher"로 초기화
         super().__init__("lidar_publisher")
-        
-        # "/scan" 토픽을 구독하고, 메시지가 도착하면 listener_callback을 호출
+
+        # "/scan" 토픽을 구독하고, 메시지가 도착하면 lidar_callback 호출
         self.subscription = self.create_subscription(
             LaserScan,
             "/scan",
             self.lidar_callback,
             qos_profile_sensor_data,  # QoS 설정 적용
         )
-        
+
         # "/scan_sliced" 토픽에 LaserScan 메시지를 발행할 퍼블리셔 생성
         self.lidar_sliced_publisher = self.create_publisher(
             LaserScan,
