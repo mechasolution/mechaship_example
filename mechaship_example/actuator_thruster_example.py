@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import Float32
+from std_msgs.msg import Float64
 
 
 class ActuatorThrusterExample(Node):
@@ -23,8 +23,8 @@ class ActuatorThrusterExample(Node):
         self.timer_callback()
 
     def timer_callback(self):
-        # Float32 메시지 객체 생성
-        msg = Float32()
+        # Float64 메시지 객체 생성
+        msg = Float64()
         # 메시지 데이터에 현재 스러스터 퍼센티지 할당
         msg.data = self.thruster_percentage
 
