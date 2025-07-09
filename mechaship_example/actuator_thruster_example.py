@@ -12,9 +12,9 @@ class ActuatorThrusterExample(Node):
         # 스러스터의 초기 퍼센티지를 0.0%로 설정
         self.thruster_percentage = 0.0
 
-        # "/actuator/thruster/percentage" 토픽에 Float32 메시지를 발행할 퍼블리셔 생성
+        # "/actuator/thruster/percentage" 토픽에 Float64 메시지를 발행할 퍼블리셔 생성
         self.thruster_publisher = self.create_publisher(
-            Float32, "/actuator/thruster/percentage", 10
+            Float64, "/actuator/thruster/percentage", 10
         )
 
         # 2초 간격으로 timer_callback 함수를 호출하는 타이머 생성

@@ -12,8 +12,8 @@ class ActuatorKeyExample(Node):
         # 키의 초기 각도를 60.0도로 설정
         self.key_degree = 60.0
 
-        # "/actuator/key/degree" 토픽에 Float32 메시지를 발행할 퍼블리셔 생성
-        self.key_publisher = self.create_publisher(Float32, "/actuator/key/degree", 10)
+        # "/actuator/key/degree" 토픽에 Float64 메시지를 발행할 퍼블리셔 생성
+        self.key_publisher = self.create_publisher(Float64, "/actuator/key/degree", 10)
 
         # 2초 간격으로 timer_callback 함수를 호출하는 타이머 생성
         self.create_timer(2, self.timer_callback)

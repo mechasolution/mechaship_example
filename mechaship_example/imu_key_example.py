@@ -8,7 +8,7 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 
 from sensor_msgs.msg import Imu
-from std_msgs.msg import Float32
+from std_msgs.msg import Float64
 
 
 class ImuKeyExampleNode(Node):
@@ -24,8 +24,8 @@ class ImuKeyExampleNode(Node):
             qos_profile_sensor_data,  # QoS 설정 적용
         )
 
-        # "/actuator/key/degree" 토픽에 Float32 메시지를 발행할 퍼블리셔 생성
-        self.imu_publisher = self.create_publisher(Float32, "/actuator/key/degree", 10)
+        # "/actuator/key/degree" 토픽에 Float64 메시지를 발행할 퍼블리셔 생성
+        self.imu_publisher = self.create_publisher(Float64, "/actuator/key/degree", 10)
 
         # Key Topic에 Publish하는 주기를 10Hz로 제한하기 위해 0.1초 간격의 타이머 생성
         self.create_timer(0.1, self.timer_callback)
@@ -34,8 +34,8 @@ class ImuKeyExampleNode(Node):
         self.key_target_degree = 90.0
 
     def timer_callback(self):
-        # Float32 메시지 객체 생성
-        msg = Float32()
+        # Float64 메시지 객체 생성
+        msg = Float64()
         # 현재 키 목표 각도를 메시지 데이터로 설정
         msg.data = self.key_target_degree
 
